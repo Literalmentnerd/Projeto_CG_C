@@ -36,8 +36,6 @@ const OUTER_RING_OUTRADIUS = 45;
 
 var geometry, renderer, scene, mesh;
 
-
-
 let materials = [ new THREE.MeshBasicMaterial({ color: 0xdb5856 }) ];
 
 ////////////////////////
