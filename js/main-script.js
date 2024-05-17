@@ -191,6 +191,20 @@ function createMobius(obj, pos) {
     const y = pos.y;
     const z = pos.z;
 
+    const vertices = new Float32Array( [
+        -1.0, -1.0,  1.0, 
+         1.0, -1.0,  1.0, 
+         1.0,  1.0,  1.0, 
+    
+         1.0,  1.0,  1.0, 
+        -1.0,  1.0,  1.0, 
+        -1.0, -1.0,  1.0  
+    ] );
+    geometry = new THREE.BufferGeometry();
+    geometry.setAttribute( 'position', new THREE.BufferAttribute( vertices, 3 ) );
+    mesh = new THREE.Mesh(geometry, materials[0]);
+    mesh.position.set(x, y, z);
+    obj.add(mesh);
 
 }
 
@@ -204,8 +218,8 @@ function createCarousel(pos) {
     createOuterRing(carousel, OUTER_RING_POS);
     createMiddleRing(carousel, MIDDLE_RING_POS);
     createInnerRing(carousel, INNER_RING_POS);
-    //createCilinder(carousel, CYLINDER_POS);
-    //createMobius(carousel, MOBIUS_POS);
+    createCilinder(carousel, CYLINDER_POS);
+    createMobius(carousel, MOBIUS_POS);
 
     scene.add(carousel);
 
@@ -237,7 +251,7 @@ function createCamera(){
     'use strict';
 
     camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.set(100, 100, 100);
+    camera.position.set(50, 50, 50);
     camera.lookAt(scene.position);
 
 }
