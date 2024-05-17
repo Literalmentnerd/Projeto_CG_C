@@ -11,8 +11,8 @@ import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 //POSITIONS
 const CAROUSEL_POS = new THREE.Vector3(0, 0, 0);
 const OUTER_RING_POS = new THREE.Vector3(0, 0, 0);
-const MIDDLE_RING_POS = new THREE.Vector3(0, 0, 0);
-const INNER_RING_POS = new THREE.Vector3(0, 0, 0);
+const MIDDLE_RING_POS = new THREE.Vector3(0, -15, 0);
+const INNER_RING_POS = new THREE.Vector3(0, -30, 0);
 const CYLINDER_POS = new THREE.Vector3(0, 0, 0);
 const MOBIUS_POS = new THREE.Vector3(0, 50, 0);
 
@@ -34,9 +34,17 @@ const OUTER_RING_OUTRADIUS = 45;
 /* GLOBAL VARIABLES */
 //////////////////////
 
-var geometry, renderer, scene, mesh;
+var geometry, renderer, scene, mesh, camera;
 
-let materials = [ new THREE.MeshBasicMaterial({ color: 0xdb5856 }) ];
+var outerRing = new THREE.Object3D();
+var middleRing = new THREE.Object3D();
+var innerRing = new THREE.Object3D();
+
+var clock = new THREE.Clock();
+
+let materials = [ new THREE.MeshBasicMaterial({ color: 0xdb5856, side: THREE.DoubleSide }), 
+                  new THREE.MeshBasicMaterial({ color: 0x4287f5, side: THREE.DoubleSide }), 
+                  new THREE.MeshBasicMaterial({ color: 0x42f56f, side: THREE.DoubleSide }) ];
 
 ////////////////////////
 /* CREATE OBJECT3D(S) */
@@ -52,10 +60,35 @@ function createOuterRing(obj, pos) {
     const y = pos.y;
     const z = pos.z;
 
+    //Top side
     geometry = new THREE.RingGeometry(OUTER_RING_INRADIUS, OUTER_RING_OUTRADIUS);
     mesh = new THREE.Mesh(geometry, materials[0]);
-    mesh.position.set(x, y, z);
-    obj.add(mesh);
+    mesh.position.set(x, z, y+5);
+    outerRing.add(mesh);
+
+    //Bottom side
+    geometry = new THREE.RingGeometry(OUTER_RING_OUTRADIUS, OUTER_RING_INRADIUS);
+    mesh = new THREE.Mesh(geometry, materials[0]);
+    mesh.position.set(x, z, y-5);
+    outerRing.add(mesh);
+
+    const path = new THREE.LineCurve3(new THREE.Vector3(0,0,5), new THREE.Vector3(0,0,-5));
+
+    //Outer side
+    geometry = new THREE.TubeGeometry(path, 64, OUTER_RING_OUTRADIUS, 32);
+    mesh = new THREE.Mesh(geometry, materials[0]);
+    mesh.position.set(x, z, y);
+    outerRing.add(mesh);
+
+    //Inner side
+    geometry = new THREE.TubeGeometry(path, 64, OUTER_RING_INRADIUS, 32);
+    mesh = new THREE.Mesh(geometry, materials[0]);
+    mesh.position.set(x, z, y);
+    outerRing.add(mesh);
+
+    outerRing.rotateX(Math.PI/2);
+
+    obj.add(outerRing);
 
 }
 
@@ -66,10 +99,35 @@ function createMiddleRing(obj, pos) {
     const y = pos.y;
     const z = pos.z;
 
+    //Top side
     geometry = new THREE.RingGeometry(MIDDLE_RING_INRADIUS, MIDDLE_RING_OUTRADIUS);
-    mesh = new THREE.Mesh(geometry, materials[0]);
-    mesh.position.set(x, y, z);
-    obj.add(mesh);
+    mesh = new THREE.Mesh(geometry, materials[1]);
+    mesh.position.set(x, z, y+5);
+    middleRing.add(mesh);
+
+    //Bottom side
+    geometry = new THREE.RingGeometry(MIDDLE_RING_OUTRADIUS, MIDDLE_RING_INRADIUS);
+    mesh = new THREE.Mesh(geometry, materials[1]);
+    mesh.position.set(x, z, y-5);
+    middleRing.add(mesh);
+
+    const path = new THREE.LineCurve3(new THREE.Vector3(0,0,5), new THREE.Vector3(0,0,-5));
+
+    //Outer side
+    geometry = new THREE.TubeGeometry(path, 64, MIDDLE_RING_OUTRADIUS, 32);
+    mesh = new THREE.Mesh(geometry, materials[1]);
+    mesh.position.set(x, z, y);
+    middleRing.add(mesh);
+
+    //Inner side
+    geometry = new THREE.TubeGeometry(path, 64, MIDDLE_RING_INRADIUS, 32);
+    mesh = new THREE.Mesh(geometry, materials[1]);
+    mesh.position.set(x, z, y);
+    middleRing.add(mesh);
+
+    middleRing.rotateX(Math.PI/2);
+
+    obj.add(middleRing);
 
 }
 
@@ -80,10 +138,35 @@ function createInnerRing(obj, pos) {
     const y = pos.y;
     const z = pos.z;
 
+    //Top side
     geometry = new THREE.RingGeometry(INNER_RING_INRADIUS, INNER_RING_OUTRADIUS);
-    mesh = new THREE.Mesh(geometry, materials[0]);
-    mesh.position.set(x, y, z);
-    obj.add(mesh);
+    mesh = new THREE.Mesh(geometry, materials[2]);
+    mesh.position.set(x, z, y+5);
+    innerRing.add(mesh);
+
+    //Bottom side
+    geometry = new THREE.RingGeometry(INNER_RING_OUTRADIUS, INNER_RING_INRADIUS);
+    mesh = new THREE.Mesh(geometry, materials[2]);
+    mesh.position.set(x, z, y-5);
+    innerRing.add(mesh);
+
+    const path = new THREE.LineCurve3(new THREE.Vector3(0,0,5), new THREE.Vector3(0,0,-5));
+
+    //Outer side
+    geometry = new THREE.TubeGeometry(path, 64, INNER_RING_OUTRADIUS, 32);
+    mesh = new THREE.Mesh(geometry, materials[2]);
+    mesh.position.set(x, z, y);
+    innerRing.add(mesh);
+
+    //Inner side
+    geometry = new THREE.TubeGeometry(path, 64, INNER_RING_INRADIUS, 32);
+    mesh = new THREE.Mesh(geometry, materials[2]);
+    mesh.position.set(x, z, y);
+    innerRing.add(mesh);
+
+    innerRing.rotateX(Math.PI/2);
+
+    obj.add(innerRing);
 
 }
 
@@ -121,7 +204,7 @@ function createCarousel(pos) {
     createOuterRing(carousel, OUTER_RING_POS);
     createMiddleRing(carousel, MIDDLE_RING_POS);
     createInnerRing(carousel, INNER_RING_POS);
-    createCilinder(carousel, CYLINDER_POS);
+    //createCilinder(carousel, CYLINDER_POS);
     //createMobius(carousel, MOBIUS_POS);
 
     scene.add(carousel);
@@ -153,7 +236,7 @@ function createScene(){
 function createCamera(){
     'use strict';
 
-    let camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 0.1, 1000);
     camera.position.set(100, 100, 100);
     camera.lookAt(scene.position);
 
@@ -166,8 +249,14 @@ function createCamera(){
 ////////////
 /* UPDATE */
 ////////////
-function update(){
+function update(delta){
     'use strict';
+
+    //! Check coliision and handle
+
+    //! Movement with keys
+
+    const velocity = 0.5/delta;
 
     render();
 }
@@ -196,6 +285,8 @@ function init() {
     createScene();
     createCamera();
 
+    render();
+
     window.addEventListener("keydown", onKeyDown);
     window.addEventListener("resize", onResize);
 
@@ -206,7 +297,12 @@ function init() {
 /////////////////////
 function animate() {
     'use strict';
+    
+    update(clock.getDelta());
+    
+    render();
 
+    requestAnimationFrame(animate);
 }
 
 ////////////////////////////
