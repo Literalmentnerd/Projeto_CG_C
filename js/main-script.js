@@ -49,6 +49,8 @@ var middle_move = false;
 var outer_up = true;
 var outer_move = false;
 
+var globalLight;
+
 var orbit; //! REMOVER NA ENTREGA
 
 var outerRing = new THREE.Object3D();
@@ -57,10 +59,10 @@ var innerRing = new THREE.Object3D();
 
 var clock = new THREE.Clock();
 
-let materials = [ new THREE.MeshBasicMaterial({ color: 0xdb5856, side: THREE.DoubleSide }), 
-                  new THREE.MeshBasicMaterial({ color: 0x4287f5, side: THREE.DoubleSide }), 
-                  new THREE.MeshBasicMaterial({ color: 0x42f56f, side: THREE.DoubleSide }),
-                  new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.DoubleSide })];
+let materials = [ new THREE.MeshLambertMaterial({ color: 0xdb5856, side: THREE.DoubleSide }), 
+                  new THREE.MeshLambertMaterial({ color: 0x4287f5, side: THREE.DoubleSide }), 
+                  new THREE.MeshLambertMaterial({ color: 0x42f56f, side: THREE.DoubleSide }),
+                  new THREE.MeshLambertMaterial({ color: 0xf0f0f0, side: THREE.DoubleSide })];
 
 ////////////////////////
 /* CREATE OBJECT3D(S) */
@@ -330,7 +332,17 @@ function createCamera(){
 /////////////////////
 /* CREATE LIGHT(S) */
 /////////////////////
+function createLights(){
+    'use strict';
 
+    globalLight = new THREE.DirectionalLight(0xffffff, 1);
+    globalLight.position.set(0, 1, 0); 
+    scene.add(globalLight);
+
+    var ambientLight = new THREE.AmbientLight(0xffa500, 0.2);
+    scene.add(ambientLight);
+
+}
 
 ////////////
 /* UPDATE */
@@ -406,6 +418,7 @@ function init() {
     document.body.appendChild(renderer.domElement);
     
     createScene();
+    createLights();
     createCamera();
     
     render();
@@ -457,6 +470,9 @@ function onKeyDown(e) {
         case 51: //3
             outer_move = true;
             break; 
+        case 68: //d
+            globalLight.visible = !globalLight.visible;
+            break;
     }
 
 }
