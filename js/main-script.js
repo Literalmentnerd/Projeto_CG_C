@@ -3,6 +3,8 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { VRButton } from 'three/addons/webxr/VRButton.js';
 import * as Stats from 'three/addons/libs/stats.module.js';
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
+import { ParametricGeometry } from 'three/addons/geometries/ParametricGeometry.js';
+
 
 ///////////////
 /* CONSTANTS */
@@ -11,8 +13,8 @@ import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 //POSITIONS
 const CAROUSEL_POS = new THREE.Vector3(0, 0, 0);
 const OUTER_RING_POS = new THREE.Vector3(0, 0, 0);
-const MIDDLE_RING_POS = new THREE.Vector3(0, 15, 0);
-const INNER_RING_POS = new THREE.Vector3(0, 30, 0);
+const MIDDLE_RING_POS = new THREE.Vector3(0, 0, 0);
+const INNER_RING_POS = new THREE.Vector3(0, 0, 0);
 const CYLINDER_POS = new THREE.Vector3(0, 0, 0);
 const MOBIUS_POS = new THREE.Vector3(0, 45, 0);
 const SKYDOME_POS = new THREE.Vector3(0, 0, 0);
@@ -39,6 +41,14 @@ const MOBIUS_SEGMENTS = 100;
 //////////////////////
 
 var geometry, renderer, scene, mesh, camera;
+
+var inner_up = true;
+var inner_move = false;
+var middle_up = true;
+var middle_move = false;
+var outer_up = true;
+var outer_move = false;
+
 var orbit; //! REMOVER NA ENTREGA
 
 var outerRing = new THREE.Object3D();
@@ -72,7 +82,7 @@ function createSkyDome(obj, pos) {
     const material = new THREE.MeshBasicMaterial({ map: texture, side: THREE.BackSide });
     const skyDome = new THREE.Mesh(geometry, material);
     skyDome.position.set(x, y, z); 
-    obj.add(skyDome);
+    scene.add(skyDome);
 }
 
 function createOuterRing(obj, pos) {
@@ -280,7 +290,7 @@ function createCarousel(pos) {
     createInnerRing(carousel, INNER_RING_POS);
     createCilinder(carousel, CYLINDER_POS);
     createMobius(carousel, MOBIUS_POS);
-    createSkyDome(carousel, CYLINDER_POS);
+    createSkyDome(carousel, SKYDOME_POS);
 
     scene.add(carousel);
 
@@ -328,11 +338,47 @@ function createCamera(){
 function update(delta){
     'use strict';
 
-    //! Check coliision and handle
+    const velocity = 0.5/delta;
+
+    carousel.rotation.y += 0.5*delta;
 
     //! Movement with keys
-
-    const velocity = 0.5/delta;
+    if(inner_move){
+        if(inner_up && innerRing.position.y < 30){
+            innerRing.position.y += 0.1*velocity;
+        } else {
+            inner_up = false;
+        }
+        if (!inner_up && innerRing.position.y > -30){
+            innerRing.position.y -= 0.1*velocity;
+        } else {
+            inner_up = true;
+        }
+    }
+    if(middle_move){
+        if(middle_up && middleRing.position.y < 30){
+            middleRing.position.y += 0.1*velocity;
+        } else {
+            middle_up = false;
+        }
+        if (!middle_up && middleRing.position.y > -30){
+            middleRing.position.y -= 0.1*velocity;
+        } else {
+            middle_up = true;
+        }
+    }
+    if(outer_move){
+        if(outer_up && outerRing.position.y < 30){
+            outerRing.position.y += 0.1*velocity;
+        } else {
+            outer_up = false;
+        }
+        if (!outer_up && outerRing.position.y > -30){
+            outerRing.position.y -= 0.1*velocity;
+        } else {
+            outer_up = true;
+        }
+    }
 
     render();
 }
@@ -365,6 +411,7 @@ function init() {
     render();
     
     window.addEventListener("keydown", onKeyDown);
+    window.addEventListener("keyup", onKeyUp);
     window.addEventListener("resize", onResize);
     
     orbit = new OrbitControls(camera, renderer.domElement); //! REMOVER NA ENTREGA  
@@ -402,10 +449,13 @@ function onKeyDown(e) {
     'use strict';
     switch (e.keyCode) {
         case 49: //1
+            inner_move = true;
             break;
         case 50: //2
+            middle_move = true;
             break;
         case 51: //3
+            outer_move = true;
             break; 
     }
 
@@ -416,6 +466,17 @@ function onKeyDown(e) {
 ///////////////////////
 function onKeyUp(e){
     'use strict';
+    switch (e.keyCode) {
+        case 49: //1
+            inner_move = false;
+            break;
+        case 50: //2
+            middle_move = false;
+            break;
+        case 51: //3
+            outer_move = false;
+            break; 
+    }
 }
 
 init();
