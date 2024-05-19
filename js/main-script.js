@@ -42,11 +42,11 @@ const MOBIUS_SEGMENTS = 100;
 
 var geometry, renderer, scene, mesh, camera;
 
-var inner_up = true;
+var inner_cur = 0;
 var inner_move = false;
-var middle_up = true;
+var middle_cur = 0;
 var middle_move = false;
-var outer_up = true;
+var outer_cur = 0;
 var outer_move = false;
 
 var globalLight;
@@ -112,7 +112,7 @@ function createParametricShapes(obj, angle, radius) {
             geometry = new ParametricGeometry(curledPaper, 32, 32);
             break;
         case 5:
-            geometry = new ParametricGeometry(hyperboloid, 32, 32);
+            geometry = new ParametricGeometry(egg, 32, 32);
             break;
         case 6:
             geometry = new ParametricGeometry(dome, 32, 32);
@@ -163,6 +163,7 @@ function createOuterRing(obj, pos) {
     mesh.position.set(x, y, z);
     outerRing.add(mesh);
 
+    //Parametric shapes
     for(let i = 0; i < 2*Math.PI; i+=Math.PI/4) createParametricShapes(outerRing, i, (OUTER_RING_INRADIUS+OUTER_RING_OUTRADIUS)/2);
     parametricCounter = Math.floor(Math.random()*8);
 
@@ -207,6 +208,7 @@ function createMiddleRing(obj, pos) {
     mesh.position.set(x, y, z);
     middleRing.add(mesh);
 
+    //Parametric shapes
     for(let i = 0; i < 2*Math.PI; i+=Math.PI/4) createParametricShapes(middleRing, i, (MIDDLE_RING_INRADIUS+MIDDLE_RING_OUTRADIUS)/2);
     parametricCounter = Math.floor(Math.random()*8);
 
@@ -251,6 +253,7 @@ function createInnerRing(obj, pos) {
     mesh.position.set(x, y, z);
     innerRing.add(mesh);
 
+    //Parametric shapes
     for(let i = 0; i < 2*Math.PI; i+=Math.PI/4) createParametricShapes(innerRing, i, (INNER_RING_INRADIUS+INNER_RING_OUTRADIUS)/2);
     parametricCounter = Math.floor(Math.random()*8);
 
@@ -330,7 +333,7 @@ function cone(u, v, target) {
     let x = radius * (1 - v) * Math.cos(2 * Math.PI * u);
     let y = height * (v);
     let z = radius * (1 - v) * Math.sin(2 * Math.PI * u);
-    target.set(x, y, z);
+    target.set(x, y-5, z);
 }
 
 function sphere(u, v, target) {
@@ -347,7 +350,7 @@ function vase(u, v, target) {
     let x = radius * (1 - 2*Math.abs(v - 0.5)) * Math.cos(2 * Math.PI * u);
     let y = height * v;
     let z = radius * (1 - 2*Math.abs(v - 0.5)) * Math.sin(2 * Math.PI * u);
-    target.set(x, y, z);
+    target.set(x, y-5, z);
 }
 
 function torus(u, v, target) {
@@ -356,7 +359,7 @@ function torus(u, v, target) {
     let x = (bigRadius + smallRadius * Math.cos(2 * Math.PI * v)) * Math.cos(2 * Math.PI * u);
     let y = (bigRadius + smallRadius * Math.cos(2 * Math.PI * v)) * Math.sin(2 * Math.PI * u);
     let z = smallRadius * Math.sin(2 * Math.PI * v);
-    target.set(x, y, z);
+    target.set(x, y-1, z);
 }
 
 function curledPaper(u, v, target) {
@@ -366,7 +369,22 @@ function curledPaper(u, v, target) {
     let x = (radius + deformation) * Math.cos(2 * Math.PI * u);
     let y = height * v;
     let z = (radius + deformation) * Math.sin(2 * Math.PI * u);
-    target.set(x, y, z);
+    target.set(x, y-5, z);
+}
+
+function egg (u, v, target) {
+    let theta = u * Math.PI * 2;
+    let phi = v * Math.PI;
+
+    let a = 3;
+    let b = 1;
+    let c = 1;
+
+    let x = a * Math.cos(theta) * Math.sin(phi);
+    let y = b * Math.sin(theta) * Math.sin(phi);
+    let z = c * Math.cos(phi);
+
+    target.set(x, y-4, z);
 }
 
 function hyperboloid(u, v, target) {
@@ -376,7 +394,7 @@ function hyperboloid(u, v, target) {
     let x = a * Math.cosh(v) * Math.cos(u);
     let y = b * Math.cosh(v) * Math.sin(u);
     let z = c * Math.sinh(v);
-    target.set(x-4, y, z);
+    target.set(x, y-5, z);
 }
 
 function dome(u, v, target) {
@@ -456,46 +474,22 @@ function createLights(){
 function update(delta){
     'use strict';
 
-    const velocity = 50*delta;
+    const velocity = 1*delta;
 
     carousel.rotation.y += 0.5*delta;
 
     //! Movement with keys
     if(inner_move){
-        if(inner_up && innerRing.position.y < 30){
-            innerRing.position.y += velocity;
-        } else {
-            inner_up = false;
-        }
-        if (!inner_up && innerRing.position.y > -30){
-            innerRing.position.y -= velocity;
-        } else {
-            inner_up = true;
-        }
+        inner_cur += velocity;
+        innerRing.position.y = 30*Math.sin(inner_cur);
     }
     if(middle_move){
-        if(middle_up && middleRing.position.y < 30){
-            middleRing.position.y += velocity;
-        } else {
-            middle_up = false;
-        }
-        if (!middle_up && middleRing.position.y > -30){
-            middleRing.position.y -= velocity;
-        } else {
-            middle_up = true;
-        }
+        middle_cur += velocity;
+        middleRing.position.y = 30*Math.sin(middle_cur);
     }
     if(outer_move){
-        if(outer_up && outerRing.position.y < 30){
-            outerRing.position.y += velocity;
-        } else {
-            outer_up = false;
-        }
-        if (!outer_up && outerRing.position.y > -30){
-            outerRing.position.y -= velocity;
-        } else {
-            outer_up = true;
-        }
+        middle_cur += velocity;
+        middleRing.position.y = 30*Math.sin(middle_cur);
     }
 
     render();
