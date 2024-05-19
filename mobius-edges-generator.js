@@ -1,4 +1,3 @@
-
 function generateMobiusVertices(numSegments, radius) {
     const vertices = [];
     for (let i = 0; i <= numSegments; i++) {
@@ -35,7 +34,7 @@ function generateMobiusVertices(numSegments, radius) {
 }
 
 const fs = require('fs');
-let data = generateMobiusVertices(100, 20).toString();
+let data = generateMobiusVertices(32, 20).toString();
 fs.writeFile('mobius-vertices.txt', data, (err) => {
 
     // In case of a error throw err.

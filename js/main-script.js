@@ -87,6 +87,45 @@ function createSkyDome(obj, pos) {
     scene.add(skyDome);
 }
 
+var parametricCounter = 0;
+function createParametricShapes(obj, angle, radius) {
+    'use strict'
+
+    const x = radius * Math.cos(angle);
+    const y = 10;
+    const z = radius * Math.sin(angle);
+
+    switch(parametricCounter++ % 8){
+        case 0:
+            geometry = new ParametricGeometry(cone, 32, 32);
+            break;
+        case 1:
+            geometry = new ParametricGeometry(sphere, 32, 32);
+            break;
+        case 2:
+            geometry = new ParametricGeometry(vase, 32, 32);
+            break;
+        case 3:
+            geometry = new ParametricGeometry(torus, 32, 32);
+            break;
+        case 4:
+            geometry = new ParametricGeometry(curledPaper, 32, 32);
+            break;
+        case 5:
+            geometry = new ParametricGeometry(hyperboloid, 32, 32);
+            break;
+        case 6:
+            geometry = new ParametricGeometry(dome, 32, 32);
+            break;
+        case 7:
+            geometry = new ParametricGeometry(kleinBottle, 32, 32);
+            break;
+    }
+    mesh = new THREE.Mesh(geometry, materials[0]);
+    mesh.position.set(x, y, z);
+    obj.add(mesh);
+}
+
 function createOuterRing(obj, pos) {
     'use strict'
 
@@ -124,6 +163,8 @@ function createOuterRing(obj, pos) {
     mesh.position.set(x, y, z);
     outerRing.add(mesh);
 
+    for(let i = 0; i < 2*Math.PI; i+=Math.PI/4) createParametricShapes(outerRing, i, (OUTER_RING_INRADIUS+OUTER_RING_OUTRADIUS)/2);
+    parametricCounter = Math.floor(Math.random()*8);
 
     obj.add(outerRing);
 
@@ -166,6 +207,9 @@ function createMiddleRing(obj, pos) {
     mesh.position.set(x, y, z);
     middleRing.add(mesh);
 
+    for(let i = 0; i < 2*Math.PI; i+=Math.PI/4) createParametricShapes(middleRing, i, (MIDDLE_RING_INRADIUS+MIDDLE_RING_OUTRADIUS)/2);
+    parametricCounter = Math.floor(Math.random()*8);
+
     obj.add(middleRing);
 
 }
@@ -206,6 +250,9 @@ function createInnerRing(obj, pos) {
     mesh.rotateX(Math.PI/2);
     mesh.position.set(x, y, z);
     innerRing.add(mesh);
+
+    for(let i = 0; i < 2*Math.PI; i+=Math.PI/4) createParametricShapes(innerRing, i, (INNER_RING_INRADIUS+INNER_RING_OUTRADIUS)/2);
+    parametricCounter = Math.floor(Math.random()*8);
 
     obj.add(innerRing);
 
@@ -273,6 +320,92 @@ function createCarousel(pos) {
 
 }
 
+///////////////////////////
+/* PARAMETRIC GEOMETRIES */
+///////////////////////////
+
+function cone(u, v, target) {
+    let height = 5;
+    let radius = 3;
+    let x = radius * (1 - v) * Math.cos(2 * Math.PI * u);
+    let y = height * (v);
+    let z = radius * (1 - v) * Math.sin(2 * Math.PI * u);
+    target.set(x, y, z);
+}
+
+function sphere(u, v, target) {
+    let radius = 5;
+    let x = radius * Math.sin(u * Math.PI) * Math.cos(v * 2 * Math.PI);
+    let y = radius * Math.sin(u * Math.PI) * Math.sin(v * 2 * Math.PI);
+    let z = radius * Math.cos(u * Math.PI);
+    target.set(x, y, z);
+}
+
+function vase(u, v, target) {
+    let height = 5;
+    let radius = 3;
+    let x = radius * (1 - 2*Math.abs(v - 0.5)) * Math.cos(2 * Math.PI * u);
+    let y = height * v;
+    let z = radius * (1 - 2*Math.abs(v - 0.5)) * Math.sin(2 * Math.PI * u);
+    target.set(x, y, z);
+}
+
+function torus(u, v, target) {
+    let bigRadius = 3; 
+    let smallRadius = 1;  
+    let x = (bigRadius + smallRadius * Math.cos(2 * Math.PI * v)) * Math.cos(2 * Math.PI * u);
+    let y = (bigRadius + smallRadius * Math.cos(2 * Math.PI * v)) * Math.sin(2 * Math.PI * u);
+    let z = smallRadius * Math.sin(2 * Math.PI * v);
+    target.set(x, y, z);
+}
+
+function curledPaper(u, v, target) {
+    let height = 5;
+    let radius = 3;
+    let deformation = Math.sin(5 * u);
+    let x = (radius + deformation) * Math.cos(2 * Math.PI * u);
+    let y = height * v;
+    let z = (radius + deformation) * Math.sin(2 * Math.PI * u);
+    target.set(x, y, z);
+}
+
+function hyperboloid(u, v, target) {
+    let a = 5; 
+    let b = 5;
+    let c = 5;
+    let x = a * Math.cosh(v) * Math.cos(u);
+    let y = b * Math.cosh(v) * Math.sin(u);
+    let z = c * Math.sinh(v);
+    target.set(x-4, y, z);
+}
+
+function dome(u, v, target) {
+    let radius = 5; 
+    let x = radius * Math.sin(Math.PI * v * 0.5) * Math.cos(2 * Math.PI * u);
+    let y = radius * Math.sin(Math.PI * v * 0.5) * Math.sin(2 * Math.PI * u);
+    let z = radius * Math.cos(Math.PI * v * 0.5);
+    target.set(x, y, z);
+}
+
+function kleinBottle(u, v, target) {
+    let radius = 1;  // Radius of the Klein Bottle
+    u *= 2 * Math.PI;
+    v *= 2 * Math.PI;
+
+    let x, y, z;
+    if (u < Math.PI) {
+        x = 2 * Math.cos(u) * (1 + Math.sin(u)) + radius * Math.cos(u) * Math.cos(v);
+        y = 5 * Math.sin(u) + radius * Math.sin(u) * Math.cos(v);
+        z = radius * Math.sin(v);
+    } else {
+        x = 2 * Math.cos(u) * (1 + Math.sin(u)) + radius * Math.cos(v + Math.PI);
+        y = 5 * Math.sin(u);
+        z = radius * Math.sin(v);
+    }
+
+    target.set(x, y, z);
+}
+
 
 /////////////////////
 /* CREATE SCENE(S) */
@@ -309,7 +442,7 @@ function createLights(){
     'use strict';
 
     globalLight = new THREE.DirectionalLight(0xffffff, 1);
-    globalLight.position.set(0, 1, 0); 
+    globalLight.position.set(50, 50, 50); 
     scene.add(globalLight);
 
     var ambientLight = new THREE.AmbientLight(0xffa500, 0.2);
@@ -323,43 +456,43 @@ function createLights(){
 function update(delta){
     'use strict';
 
-    const velocity = 0.5/delta;
+    const velocity = 50*delta;
 
     carousel.rotation.y += 0.5*delta;
 
     //! Movement with keys
     if(inner_move){
         if(inner_up && innerRing.position.y < 30){
-            innerRing.position.y += 0.1*velocity;
+            innerRing.position.y += velocity;
         } else {
             inner_up = false;
         }
         if (!inner_up && innerRing.position.y > -30){
-            innerRing.position.y -= 0.1*velocity;
+            innerRing.position.y -= velocity;
         } else {
             inner_up = true;
         }
     }
     if(middle_move){
         if(middle_up && middleRing.position.y < 30){
-            middleRing.position.y += 0.1*velocity;
+            middleRing.position.y += velocity;
         } else {
             middle_up = false;
         }
         if (!middle_up && middleRing.position.y > -30){
-            middleRing.position.y -= 0.1*velocity;
+            middleRing.position.y -= velocity;
         } else {
             middle_up = true;
         }
     }
     if(outer_move){
         if(outer_up && outerRing.position.y < 30){
-            outerRing.position.y += 0.1*velocity;
+            outerRing.position.y += velocity;
         } else {
             outer_up = false;
         }
         if (!outer_up && outerRing.position.y > -30){
-            outerRing.position.y -= 0.1*velocity;
+            outerRing.position.y -= velocity;
         } else {
             outer_up = true;
         }
