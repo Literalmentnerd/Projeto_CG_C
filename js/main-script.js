@@ -16,7 +16,7 @@ const OUTER_RING_POS = new THREE.Vector3(0, 0, 0);
 const MIDDLE_RING_POS = new THREE.Vector3(0, 0, 0);
 const INNER_RING_POS = new THREE.Vector3(0, 0, 0);
 const CYLINDER_POS = new THREE.Vector3(0, 0, 0);
-const MOBIUS_POS = new THREE.Vector3(0, 45, 0);
+const MOBIUS_POS = new THREE.Vector3(0, 50, 0);
 const SKYDOME_POS = new THREE.Vector3(0, 0, 0);
 
 //SIZE
@@ -50,6 +50,9 @@ var outer_cur = 0;
 var outer_move = false;
 
 var globalLight;
+var spotlight;
+let spotlights = [];
+var spotlightMode = true;
 
 var orbit; //! REMOVER NA ENTREGA
 
@@ -122,6 +125,9 @@ function createParametricShapes(obj, angle, radius) {
             break;
     }
     mesh = new THREE.Mesh(geometry, materials[0]);
+    spotlight = new THREE.SpotLight(0xffffff, 500, 30, Math.PI/2, 0.5, 2);
+    mesh.add(spotlight);
+    spotlights.push(spotlight);
     mesh.position.set(x, y, z);
     obj.add(mesh);
 }
@@ -492,6 +498,16 @@ function update(delta){
         outerRing.position.y = 30*Math.sin(outer_cur);
     }
 
+    if (spotlightMode) {
+        spotlights.forEach(spotlight => {
+            spotlight.visible = true;
+        });
+    } else if (!spotlightMode) {
+        spotlights.forEach(spotlight => {
+            spotlight.visible = false;
+        });
+    }
+
     render();
 }
 
@@ -572,6 +588,9 @@ function onKeyDown(e) {
             break; 
         case 68: //d
             globalLight.visible = !globalLight.visible;
+            break;
+        case 83: //s
+            spotlightMode = !spotlightMode;
             break;
     }
 
