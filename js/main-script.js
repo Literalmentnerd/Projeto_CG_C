@@ -488,8 +488,8 @@ function update(delta){
         middleRing.position.y = 30*Math.sin(middle_cur);
     }
     if(outer_move){
-        middle_cur += velocity;
-        middleRing.position.y = 30*Math.sin(middle_cur);
+        outer_cur += velocity;
+        outerRing.position.y = 30*Math.sin(outer_cur);
     }
 
     render();
