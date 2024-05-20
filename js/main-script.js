@@ -60,6 +60,7 @@ var lambert = false;
 var phong = false;
 var toon = false;
 var normal = false;
+var basic = false;
 
 var orbit; //! REMOVER NA ENTREGA
 
@@ -70,22 +71,26 @@ var clock = new THREE.Clock();
 let outer_materials = { lambert: new THREE.MeshLambertMaterial({color: 0xdb5856, side: THREE.DoubleSide}),
                         phong: new THREE.MeshPhongMaterial({color: 0xdb5856, side: THREE.DoubleSide}),
                         toon: new THREE.MeshToonMaterial({color: 0xdb5856, side: THREE.DoubleSide}),
-                        normal: new THREE.MeshNormalMaterial({side: THREE.DoubleSide}) };
+                        normal: new THREE.MeshNormalMaterial({side: THREE.DoubleSide}), 
+                        basic: new THREE.MeshBasicMaterial({color: 0xdb5856, side: THREE.DoubleSide})};
 
 let middle_materials = {    lambert: new THREE.MeshLambertMaterial({color: 0x4287f5, side: THREE.DoubleSide}),
                             phong: new THREE.MeshPhongMaterial({color: 0x4287f5, side: THREE.DoubleSide}),
                             toon: new THREE.MeshToonMaterial({color: 0x4287f5, side: THREE.DoubleSide}),
-                            normal: new THREE.MeshNormalMaterial({side: THREE.DoubleSide}) };
+                            normal: new THREE.MeshNormalMaterial({side: THREE.DoubleSide}),
+                            basic: new THREE.MeshBasicMaterial({color: 0x4287f5, side: THREE.DoubleSide})};
                     
 let inner_materials = { lambert: new THREE.MeshLambertMaterial({color: 0x42f56f, side: THREE.DoubleSide}),
                         phong: new THREE.MeshPhongMaterial({color: 0x42f56f, side: THREE.DoubleSide}),
                         toon: new THREE.MeshToonMaterial({color: 0x42f56f, side: THREE.DoubleSide}),
-                        normal: new THREE.MeshNormalMaterial({side: THREE.DoubleSide}) };
+                        normal: new THREE.MeshNormalMaterial({side: THREE.DoubleSide}),
+                        basic: new THREE.MeshBasicMaterial({color: 0x42f56f, side: THREE.DoubleSide})};
 
 let materials = {   lambert: new THREE.MeshLambertMaterial({color: 0xf0f0f0, side: THREE.DoubleSide}),
                     phong: new THREE.MeshPhongMaterial({color: 0xf0f0f0, side: THREE.DoubleSide}),
                     toon: new THREE.MeshToonMaterial({color: 0xf0f0f0, side: THREE.DoubleSide}),
-                    normal: new THREE.MeshNormalMaterial({side: THREE.DoubleSide}) };
+                    normal: new THREE.MeshNormalMaterial({side: THREE.DoubleSide}),
+                    basic: new THREE.MeshBasicMaterial({color: 0xf0f0f0, side: THREE.DoubleSide})};
 
 ////////////////////////
 /* CREATE OBJECT3D(S) */
@@ -531,31 +536,21 @@ function createLights(){
 ////////////
 
 function changeMaterial(material) {
-    mobius.material.needsUpdate = true;
     mobius.material = materials[material];
-    mobius.material.needsUpdate = false;
 
     for(let i = 0; i < outerRing.children.length; i++) {
-        outerRing.children[i].material.needsUpdate = true;
         outerRing.children[i].material = outer_materials[material];
-        outerRing.children[i].material.needsUpdate = false;
     }
 
     for(let i = 0; i < middleRing.children.length; i++) {
-        middleRing.children[i].material.needsUpdate = true;
         middleRing.children[i].material = middle_materials[material];
-        middleRing.children[i].material.needsUpdate = false;
     }
 
     for(let i = 0; i < innerRing.children.length; i++) {
-        innerRing.children[i].material.needsUpdate = true;
         innerRing.children[i].material = inner_materials[material];
-        innerRing.children[i].material.needsUpdate = false;
     }
 
-    cylinder.material.needsUpdate = true;
     cylinder.material = materials[material];
-    cylinder.material.needsUpdate = false;
 }
 
 function update(delta){
@@ -590,6 +585,8 @@ function update(delta){
     if(toon) changeMaterial('toon');
 
     if(normal) changeMaterial('normal');
+
+    if(basic) changeMaterial('basic');
 
     if (spotlightMode) {
         spotlights.forEach(spotlight => {
@@ -703,24 +700,35 @@ function onKeyDown(e) {
             phong = false;
             toon = false;
             normal = false;
+            basic = false;
             break;
         case 87: //w
             lambert = false;
             phong = true;
             toon = false;
             normal = false;
+            basic = false;
             break;
         case 69: //e
             lambert = false;
             phong = false;
             toon = true;
             normal = false;
+            basic = false;
             break;
         case 82: //r
             lambert = false;
             phong = false;
             toon = false;
             normal = true;
+            basic = false;
+            break;
+        case 84: //t
+            lambert = false;
+            phong = false;
+            toon = false;
+            normal = false;
+            basic = true;
             break;
     }
 
@@ -741,17 +749,20 @@ function onKeyUp(e){
         case 51: //3
             outer_move = false;
             break; 
-        case 113: //q
+        case 81: //q
             lambert = false;
             break;
-        case 119: //w
+        case 87: //w
             phong = false;
             break;
-        case 101: //e
+        case 69: //e
             toon = false;
             break;
-        case 114: //r
+        case 82: //r
             normal = false;
+            break;
+        case 84: //t
+            basic = false;
             break;
     }
 }
