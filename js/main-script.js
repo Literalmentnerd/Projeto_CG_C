@@ -56,7 +56,7 @@ var spotlightMode = true;
 var pointLights = [];
 var pointLightMode = true;
 
-var curMapping = 'lambert';
+var curMaterial = 'lambert';
 var lambert = false;
 var phong = false;
 var toon = false;
@@ -539,7 +539,7 @@ function createLights(){
 ////////////
 
 function changeMaterial(material) {
-    if(material != 'basic') curMapping = material;
+    if(material != 'basic') curMaterial = material;
 
     mobius.material = materials[material];
 
@@ -589,12 +589,12 @@ function update(delta){
     
     if(toon) changeMaterial('toon');
 
-    if(normal) changeMaterial('normal');
+    if(basic) changeMaterial('basic');
 
-    if(basic && curMapping != 'normal') changeMaterial('basic');
+    if(normal || curMaterial == 'normal') changeMaterial('normal');
 
     if(restoreMapping) {
-        changeMaterial(curMapping);
+        changeMaterial(curMaterial);
         restoreMapping = false;
     }
 
@@ -710,35 +710,30 @@ function onKeyDown(e) {
             phong = false;
             toon = false;
             normal = false;
-            basic = false;
             break;
         case 87: //w
             lambert = false;
             phong = true;
             toon = false;
             normal = false;
-            basic = false;
             break;
         case 69: //e
             lambert = false;
             phong = false;
             toon = true;
             normal = false;
-            basic = false;
             break;
         case 82: //r
             lambert = false;
             phong = false;
             toon = false;
             normal = true;
-            basic = false;
             break;
         case 84: //t
-            basic = !basic;
+            basic = !basic && curMaterial != 'normal';
             if(!basic) restoreMapping = true;
             break;
     }
-
 }
 
 ///////////////////////
