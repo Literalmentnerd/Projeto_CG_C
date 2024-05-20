@@ -56,11 +56,14 @@ var spotlightMode = true;
 var pointLights = [];
 var pointLightMode = true;
 
+var curMapping = 'lambert';
 var lambert = false;
 var phong = false;
 var toon = false;
 var normal = false;
+
 var basic = false;
+var restoreMapping = false;
 
 var orbit; //! REMOVER NA ENTREGA
 
@@ -536,6 +539,8 @@ function createLights(){
 ////////////
 
 function changeMaterial(material) {
+    if(material != 'basic') curMapping = material;
+
     mobius.material = materials[material];
 
     for(let i = 0; i < outerRing.children.length; i++) {
@@ -586,7 +591,12 @@ function update(delta){
 
     if(normal) changeMaterial('normal');
 
-    if(basic) changeMaterial('basic');
+    if(basic && curMapping != 'normal') changeMaterial('basic');
+
+    if(restoreMapping) {
+        changeMaterial(curMapping);
+        restoreMapping = false;
+    }
 
     if (spotlightMode) {
         spotlights.forEach(spotlight => {
@@ -724,11 +734,8 @@ function onKeyDown(e) {
             basic = false;
             break;
         case 84: //t
-            lambert = false;
-            phong = false;
-            toon = false;
-            normal = false;
-            basic = true;
+            basic = !basic;
+            if(!basic) restoreMapping = true;
             break;
     }
 
@@ -760,9 +767,6 @@ function onKeyUp(e){
             break;
         case 82: //r
             normal = false;
-            break;
-        case 84: //t
-            basic = false;
             break;
     }
 }
