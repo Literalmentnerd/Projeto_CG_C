@@ -97,6 +97,7 @@ var middleRing = new THREE.Object3D();
 var innerRing = new THREE.Object3D();
 var mobius = new THREE.Mesh();
 var cylinder = new THREE.Mesh();
+var parametricObjects = [];
 
 function createSkyDome() {
     'use strict'
@@ -120,6 +121,8 @@ function createParametricShapes(obj, angle, radius, ring_materials) {
     const x = radius * Math.cos(angle);
     const y = 10;
     const z = radius * Math.sin(angle);
+
+    const axis = new THREE.Vector3(Math.floor(Math.random()*6)-3, Math.floor(Math.random()*6)-3, Math.floor(Math.random()*6)-3);
 
     switch(parametricCounter++ % 8){
         case 0:
@@ -148,12 +151,18 @@ function createParametricShapes(obj, angle, radius, ring_materials) {
             break;
     }
     mesh = new THREE.Mesh(geometry, ring_materials['lambert']);
+
     spotlight = new THREE.SpotLight('white', 250, 30, Math.PI, 0.5, 2);
-    mesh.add(spotlight);
-    spotlight.position.y -= 5;
+    spotlight.position.set(x, y-4.75, z);
+    obj.add(spotlight);
     spotlights.push(spotlight);
+
     mesh.position.set(x, y, z);
     spotlight.target = mesh;
+    mesh.rotateY(Math.PI*2*Math.random());
+
+    parametricObjects.push([mesh, axis.normalize()]);
+
     obj.add(mesh);
 }
 
@@ -420,8 +429,8 @@ function torus(u, v, target) {
 }
 
 function curledPaper(u, v, target) {
-    let height = 5 * parametricScale;
-    let radius = 3 * parametricScale;
+    let height = 3.5 * parametricScale;
+    let radius = 2 * parametricScale;
     let deformation = Math.sin(5 * u);
     let x = (radius + deformation) * Math.cos(2 * Math.PI * u);
     let y = height * v;
@@ -454,17 +463,20 @@ function dome(u, v, target) {
 
 function kleinBottle(u, v, target) {
     let radius = 1 * parametricScale;
+    let height = 3.5 * parametricScale;
+    let width = 2 * parametricScale;
+
     u *= 2 * Math.PI;
     v *= 2 * Math.PI;
 
     let x, y, z;
     if (u < Math.PI) {
-        x = 2 * Math.cos(u) * (1 + Math.sin(u)) + radius * Math.cos(u) * Math.cos(v);
-        y = 5 * Math.sin(u) + radius * Math.sin(u) * Math.cos(v);
+        x = width * Math.cos(u) * (1 + Math.sin(u)) + radius * Math.cos(u) * Math.cos(v);
+        y = height * Math.sin(u) + radius * Math.sin(u) * Math.cos(v);
         z = radius * Math.sin(v);
     } else {
-        x = 2 * Math.cos(u) * (1 + Math.sin(u)) + radius * Math.cos(v + Math.PI);
-        y = 5 * Math.sin(u);
+        x = width * Math.cos(u) * (1 + Math.sin(u)) + radius * Math.cos(v + Math.PI);
+        y = height * Math.sin(u);
         z = radius * Math.sin(v);
     }
 
@@ -552,6 +564,10 @@ function update(delta){
     const velocity = 1*delta;
 
     carousel.rotation.y += 0.5*delta;
+
+    for(let i = 0; i < parametricObjects.length; i++) {
+        parametricObjects[i][0].rotateOnAxis(parametricObjects[i][1], 1*delta);
+    }
 
     //! Movement with keys
     if(inner_move){
