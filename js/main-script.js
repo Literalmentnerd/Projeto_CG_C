@@ -57,6 +57,8 @@ var outerRing = new THREE.Object3D();
 var middleRing = new THREE.Object3D();
 var innerRing = new THREE.Object3D();
 
+var parametricScale = 1;
+
 var clock = new THREE.Clock();
 
 let materials = [ new THREE.MeshLambertMaterial({ color: 0xdb5856, side: THREE.DoubleSide }), 
@@ -169,6 +171,7 @@ function createOuterRing(obj, pos) {
     outerRing.add(mesh);
 
     //Parametric shapes
+    parametricScale = 1;
     for(let i = 0; i < 2*Math.PI; i+=Math.PI/4) createParametricShapes(outerRing, i, (OUTER_RING_INRADIUS+OUTER_RING_OUTRADIUS)/2);
     parametricCounter = Math.floor(Math.random()*8);
 
@@ -214,6 +217,7 @@ function createMiddleRing(obj, pos) {
     middleRing.add(mesh);
 
     //Parametric shapes
+    parametricScale = 0.75;
     for(let i = 0; i < 2*Math.PI; i+=Math.PI/4) createParametricShapes(middleRing, i, (MIDDLE_RING_INRADIUS+MIDDLE_RING_OUTRADIUS)/2);
     parametricCounter = Math.floor(Math.random()*8);
 
@@ -259,6 +263,7 @@ function createInnerRing(obj, pos) {
     innerRing.add(mesh);
 
     //Parametric shapes
+    parametricScale = 0.5;
     for(let i = 0; i < 2*Math.PI; i+=Math.PI/4) createParametricShapes(innerRing, i, (INNER_RING_INRADIUS+INNER_RING_OUTRADIUS)/2);
     parametricCounter = Math.floor(Math.random()*8);
 
@@ -303,7 +308,7 @@ async function createMobius(obj, pos) {
     geometry.setAttribute( 'position', new THREE.BufferAttribute( vertices, 3 ) );
     geometry.computeVertexNormals();
     mesh = new THREE.Mesh(geometry, materials[3]);
-    mesh.rotateX(Math.PI/2);
+    mesh.rotateX(Math.PI/2);        
     mesh.position.set(x, y, z);
     obj.add(mesh);
 
@@ -334,16 +339,16 @@ function createCarousel(pos) {
 ///////////////////////////
 
 function cone(u, v, target) {
-    let height = 5;
-    let radius = 3;
+    let height = 5 * parametricScale;
+    let radius = 3 * parametricScale;
     let x = radius * (1 - v) * Math.cos(2 * Math.PI * u);
     let y = height * (v);
     let z = radius * (1 - v) * Math.sin(2 * Math.PI * u);
-    target.set(x, y-5, z);
+    target.set(x, y, z);
 }
 
 function sphere(u, v, target) {
-    let radius = 5;
+    let radius = 5 * parametricScale;
     let x = radius * Math.sin(u * Math.PI) * Math.cos(v * 2 * Math.PI);
     let y = radius * Math.sin(u * Math.PI) * Math.sin(v * 2 * Math.PI);
     let z = radius * Math.cos(u * Math.PI);
@@ -351,50 +356,50 @@ function sphere(u, v, target) {
 }
 
 function vase(u, v, target) {
-    let height = 5;
-    let radius = 3;
+    let height = 5 * parametricScale;
+    let radius = 3 * parametricScale;
     let x = radius * (1 - 2*Math.abs(v - 0.5)) * Math.cos(2 * Math.PI * u);
     let y = height * v;
     let z = radius * (1 - 2*Math.abs(v - 0.5)) * Math.sin(2 * Math.PI * u);
-    target.set(x, y-5, z);
+    target.set(x, y, z);
 }
 
 function torus(u, v, target) {
-    let bigRadius = 3; 
-    let smallRadius = 1;  
+    let bigRadius = 3 * parametricScale;
+    let smallRadius = 1 * parametricScale;
     let x = (bigRadius + smallRadius * Math.cos(2 * Math.PI * v)) * Math.cos(2 * Math.PI * u);
     let y = (bigRadius + smallRadius * Math.cos(2 * Math.PI * v)) * Math.sin(2 * Math.PI * u);
     let z = smallRadius * Math.sin(2 * Math.PI * v);
-    target.set(x, y-1, z);
+    target.set(x, y, z);
 }
 
 function curledPaper(u, v, target) {
-    let height = 5;
-    let radius = 3;
+    let height = 5 * parametricScale;
+    let radius = 3 * parametricScale;
     let deformation = Math.sin(5 * u);
     let x = (radius + deformation) * Math.cos(2 * Math.PI * u);
     let y = height * v;
     let z = (radius + deformation) * Math.sin(2 * Math.PI * u);
-    target.set(x, y-5, z);
+    target.set(x, y, z);
 }
 
 function egg(u, v, target) {
     let theta = u * Math.PI * 2;
     let phi = v * Math.PI;
 
-    let a = 3;
-    let b = 2.25;
-    let c = 2.25;
+    let a = 3 * parametricScale;
+    let b = 2.25 * parametricScale;
+    let c = 2.25 * parametricScale;
 
     let x = a * Math.cos(theta) * Math.sin(phi);
     let y = b * Math.sin(theta) * Math.sin(phi);
     let z = c * Math.cos(phi);
 
-    target.set(x, y-2.75, z);
+    target.set(x, y, z);
 }
 
 function dome(u, v, target) {
-    let radius = 5; 
+    let radius = 5 * parametricScale;
     let x = radius * Math.sin(Math.PI * v * 0.5) * Math.cos(2 * Math.PI * u);
     let y = radius * Math.sin(Math.PI * v * 0.5) * Math.sin(2 * Math.PI * u);
     let z = radius * Math.cos(Math.PI * v * 0.5);
@@ -402,7 +407,7 @@ function dome(u, v, target) {
 }
 
 function kleinBottle(u, v, target) {
-    let radius = 1;  // Radius of the Klein Bottle
+    let radius = 1 * parametricScale;
     u *= 2 * Math.PI;
     v *= 2 * Math.PI;
 
