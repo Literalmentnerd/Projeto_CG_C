@@ -33,9 +33,6 @@ const MIDDLE_RING_OUTRADIUS = 35;
 const OUTER_RING_INRADIUS = 35;
 const OUTER_RING_OUTRADIUS = 45;
 
-const MOBIUS_RADIUS = 20;
-const MOBIUS_SEGMENTS = 100;
-
 //////////////////////
 /* GLOBAL VARIABLES */
 //////////////////////
@@ -125,10 +122,12 @@ function createParametricShapes(obj, angle, radius) {
             break;
     }
     mesh = new THREE.Mesh(geometry, materials[0]);
-    spotlight = new THREE.SpotLight(0xffffff, 500, 30, Math.PI/2, 0.5, 2);
+    spotlight = new THREE.SpotLight('white', 250, 30, Math.PI, 0.5, 2);
     mesh.add(spotlight);
+    spotlight.position.y -= 5;
     spotlights.push(spotlight);
     mesh.position.set(x, y, z);
+    spotlight.target = mesh;
     obj.add(mesh);
 }
 
@@ -302,6 +301,7 @@ async function createMobius(obj, pos) {
 
     geometry = new THREE.BufferGeometry();
     geometry.setAttribute( 'position', new THREE.BufferAttribute( vertices, 3 ) );
+    geometry.computeVertexNormals();
     mesh = new THREE.Mesh(geometry, materials[3]);
     mesh.rotateX(Math.PI/2);
     mesh.position.set(x, y, z);
@@ -378,29 +378,19 @@ function curledPaper(u, v, target) {
     target.set(x, y-5, z);
 }
 
-function egg (u, v, target) {
+function egg(u, v, target) {
     let theta = u * Math.PI * 2;
     let phi = v * Math.PI;
 
     let a = 3;
-    let b = 1;
-    let c = 1;
+    let b = 2.25;
+    let c = 2.25;
 
     let x = a * Math.cos(theta) * Math.sin(phi);
     let y = b * Math.sin(theta) * Math.sin(phi);
     let z = c * Math.cos(phi);
 
-    target.set(x, y-4, z);
-}
-
-function hyperboloid(u, v, target) {
-    let a = 5; 
-    let b = 5;
-    let c = 5;
-    let x = a * Math.cosh(v) * Math.cos(u);
-    let y = b * Math.cosh(v) * Math.sin(u);
-    let z = c * Math.sinh(v);
-    target.set(x, y-5, z);
+    target.set(x, y-2.75, z);
 }
 
 function dome(u, v, target) {
@@ -429,7 +419,6 @@ function kleinBottle(u, v, target) {
 
     target.set(x, y, z);
 }
-
 
 /////////////////////
 /* CREATE SCENE(S) */
