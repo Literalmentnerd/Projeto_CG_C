@@ -33,6 +33,8 @@ const MIDDLE_RING_OUTRADIUS = 35;
 const OUTER_RING_INRADIUS = 35;
 const OUTER_RING_OUTRADIUS = 45;
 
+const MOBIUS_RADIUS = 20.05;
+
 //////////////////////
 /* GLOBAL VARIABLES */
 //////////////////////
@@ -50,6 +52,9 @@ var globalLight;
 var spotlight;
 let spotlights = [];
 var spotlightMode = true;
+
+var pointLightMode = true;
+var pointLights = [];
 
 var orbit; //! REMOVER NA ENTREGA
 
@@ -71,8 +76,6 @@ let materials = [ new THREE.MeshLambertMaterial({ color: 0xdb5856, side: THREE.D
 ////////////////////////
 
 var carousel = new THREE.Object3D();
-var mobius = new THREE.Object3D();
-var skydome = new THREE.Object3D();
 
 function createSkyDome(obj, pos) {
     'use strict'
@@ -281,8 +284,23 @@ function createCilinder(obj, pos) {
     geometry = new THREE.CylinderGeometry(CYLINDER_RADIUS, CYLINDER_RADIUS, CYLINDER_HEIGHT, CYLINDER_RADIAL);
     mesh = new THREE.Mesh(geometry, materials[0]);
     mesh.position.set(x, y, z);
+
     obj.add(mesh);
 
+}
+
+function createPointLight(obj, pos) {
+    'use strict'
+
+    const x = pos.x;
+    const y = pos.y;
+    const z = pos.z;
+
+    const light = new THREE.PointLight('white', 100, 100);
+    light.position.set(x, y, z);
+    pointLights.push(light);
+
+    obj.add(light);
 }
 
 async function parseVertices(file) { 
@@ -310,6 +328,14 @@ async function createMobius(obj, pos) {
     mesh = new THREE.Mesh(geometry, materials[3]);
     mesh.rotateX(Math.PI/2);        
     mesh.position.set(x, y, z);
+
+    // Create point lights
+    for(let i = 0; i < 2 * Math.PI; i += Math.PI/4) {
+        const pos = new THREE.Vector3(MOBIUS_RADIUS*Math.cos(i), MOBIUS_POS.y, MOBIUS_RADIUS*Math.sin(i));
+        console.log(pos);
+        createPointLight(obj, pos);
+    }
+
     obj.add(mesh);
 
 }
@@ -502,6 +528,16 @@ function update(delta){
         });
     }
 
+    if (pointLightMode) {
+        pointLights.forEach(pointLight => {
+            pointLight.visible = true;
+        });
+    } else if (!pointLightMode) {
+        pointLights.forEach(pointLight => {
+            pointLight.visible = false;
+        });
+    }
+
     render();
 }
 
@@ -585,6 +621,9 @@ function onKeyDown(e) {
             break;
         case 83: //s
             spotlightMode = !spotlightMode;
+            break;
+        case 80: //p
+            pointLightMode = !pointLightMode;
             break;
     }
 
