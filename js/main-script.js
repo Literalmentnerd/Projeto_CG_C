@@ -101,6 +101,13 @@ let mobius_materials = {lambert: new THREE.MeshLambertMaterial({color: 0xf0f0f0,
                         normal: new THREE.MeshNormalMaterial({side: THREE.DoubleSide}),
                         basic: new THREE.MeshBasicMaterial({color: 0xf0f0f0, side: THREE.DoubleSide})};
 
+const texture = new THREE.TextureLoader().load('./js/image.png');
+let skydome_materials = {   lambert: new THREE.MeshLambertMaterial({color: 0xf0f0f0, map: texture, side: THREE.BackSide}),
+                            phong: new THREE.MeshPhongMaterial({color: 0xf0f0f0, map: texture, side: THREE.BackSide}),
+                            toon: new THREE.MeshToonMaterial({color: 0xf0f0f0, map: texture, side: THREE.BackSide}),
+                            normal: new THREE.MeshNormalMaterial({map: texture, side: THREE.BackSide}),
+                            basic: new THREE.MeshBasicMaterial({color: 0xf0f0f0, map: texture, side: THREE.BackSide})}
+
 let materials = {   lambert: new THREE.MeshLambertMaterial({color: 0xf0f0f0}),
                     phong: new THREE.MeshPhongMaterial({color: 0xf0f0f0}),
                     toon: new THREE.MeshToonMaterial({color: 0xf0f0f0}),
@@ -111,6 +118,7 @@ let materials = {   lambert: new THREE.MeshLambertMaterial({color: 0xf0f0f0}),
 /* CREATE OBJECT3D(S) */
 ////////////////////////
 
+var skydome = new THREE.Object3D();
 var carousel = new THREE.Object3D();
 var outerRing = new THREE.Object3D();
 var middleRing = new THREE.Object3D();
@@ -128,13 +136,17 @@ function createSkyDome() {
     const y = SKYDOME_POS.y;
     const z = SKYDOME_POS.z;
 
-    geometry = new THREE.SphereGeometry(SKYDOME_RADIUS, 20, 100, 0, Math.PI);
-    const texture = new THREE.TextureLoader().load('./js/image.png'); 
-    const domeMaterial = new THREE.MeshBasicMaterial({ map: texture, side: THREE.BackSide });
-    mesh = new THREE.Mesh(geometry, domeMaterial);
-    mesh.rotateX(-Math.PI/2);
-    mesh.position.set(x, y, z); 
-    scene.add(mesh);
+    geometry = new THREE.SphereGeometry(SKYDOME_RADIUS, 20, 100, 0, Math.PI); 
+    skydome = new THREE.Mesh(geometry, skydome_materials['lambert']);
+    skydome.rotateX(-Math.PI/2);
+    skydome.position.set(x, y, z); 
+
+    geometry = new THREE.CylinderGeometry(SKYDOME_RADIUS, SKYDOME_RADIUS, 0.1, 32);
+    ground = new THREE.Mesh(geometry, skydome_materials['lambert']);
+    ground.position.set(x, y, z);
+
+    scene.add(ground);
+    scene.add(skydome);
 }
 
 var parametricCounter = 0;
@@ -406,22 +418,6 @@ function createBase(obj, pos) {
     obj.add(base);
 }
 
-function createGround(pos) {
-    'use strict'
-
-    const x = pos.x;
-    const y = pos.y;
-    const z = pos.z;
-
-    geometry = new THREE.CylinderGeometry(SKYDOME_RADIUS, SKYDOME_RADIUS, 0.1, 32);
-    const texture = new THREE.TextureLoader().load('./js/image.png'); 
-    const groundMaterial = new THREE.MeshBasicMaterial({ map: texture, side: THREE.BackSide });
-    ground = new THREE.Mesh(geometry, groundMaterial);
-    ground.position.set(x, y, z);
-
-    scene.add(ground);
-}
-
 function createCarousel(pos) {
     'use strict'
 
@@ -436,7 +432,6 @@ function createCarousel(pos) {
     createMobius(carousel, MOBIUS_POS);
     createBase(carousel, BASE_POS);
     createSkyDome();
-    createGround(GROUND_POS);
 
     scene.add(carousel);
 
@@ -607,6 +602,10 @@ function changeMaterial(material) {
     cylinder.material = materials[material];
 
     base.material = materials[material];
+
+    skydome.material = skydome_materials[material];
+
+    ground.material = skydome_materials[material];
 }
 
 function update(delta){
