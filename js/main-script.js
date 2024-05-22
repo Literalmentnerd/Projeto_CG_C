@@ -17,12 +17,16 @@ const MIDDLE_RING_POS = new THREE.Vector3(0, 0, 0);
 const INNER_RING_POS = new THREE.Vector3(0, 0, 0);
 const CYLINDER_POS = new THREE.Vector3(0, 0, 0);
 const MOBIUS_POS = new THREE.Vector3(0, 50, 0);
-const SKYDOME_POS = new THREE.Vector3(0, 0, 0);
+const SKYDOME_POS = new THREE.Vector3(0, -40, 0);
+const BASE_POS = new THREE.Vector3(0, -37.5, 0);
+const GROUND_POS = new THREE.Vector3(0, -40.1, 0);
 
 //SIZE
 const CYLINDER_RADIUS = 15;
 const CYLINDER_HEIGHT = 70;
-const CYLINDER_RADIAL = 48;
+
+const BASE_RADIUS = 50;
+const BASE_HEIGHT = 5;
 
 const INNER_RING_INRADIUS = 15;
 const INNER_RING_OUTRADIUS = 25;
@@ -35,11 +39,13 @@ const OUTER_RING_OUTRADIUS = 45;
 
 const MOBIUS_RADIUS = 20.05;
 
+const SKYDOME_RADIUS = 250;
+
 //////////////////////
 /* GLOBAL VARIABLES */
 //////////////////////
 
-var geometry, renderer, scene, mesh, camera;
+var geometry, renderer, scene, mesh, camera, stereoCamera;
 
 var inner_cur = 0;
 var inner_move = false;
@@ -89,11 +95,17 @@ let inner_materials = { lambert: new THREE.MeshLambertMaterial({color: 0x42f56f,
                         normal: new THREE.MeshNormalMaterial({side: THREE.DoubleSide}),
                         basic: new THREE.MeshBasicMaterial({color: 0x42f56f, side: THREE.DoubleSide})};
 
-let materials = {   lambert: new THREE.MeshLambertMaterial({color: 0xf0f0f0, side: THREE.DoubleSide}),
-                    phong: new THREE.MeshPhongMaterial({color: 0xf0f0f0, side: THREE.DoubleSide}),
-                    toon: new THREE.MeshToonMaterial({color: 0xf0f0f0, side: THREE.DoubleSide}),
-                    normal: new THREE.MeshNormalMaterial({side: THREE.DoubleSide}),
-                    basic: new THREE.MeshBasicMaterial({color: 0xf0f0f0, side: THREE.DoubleSide})};
+let mobius_materials = {lambert: new THREE.MeshLambertMaterial({color: 0xf0f0f0, side: THREE.DoubleSide}),
+                        phong: new THREE.MeshPhongMaterial({color: 0xf0f0f0, side: THREE.DoubleSide}),
+                        toon: new THREE.MeshToonMaterial({color: 0xf0f0f0, side: THREE.DoubleSide}),
+                        normal: new THREE.MeshNormalMaterial({side: THREE.DoubleSide}),
+                        basic: new THREE.MeshBasicMaterial({color: 0xf0f0f0, side: THREE.DoubleSide})};
+
+let materials = {   lambert: new THREE.MeshLambertMaterial({color: 0xf0f0f0}),
+                    phong: new THREE.MeshPhongMaterial({color: 0xf0f0f0}),
+                    toon: new THREE.MeshToonMaterial({color: 0xf0f0f0}),
+                    normal: new THREE.MeshNormalMaterial(),
+                    basic: new THREE.MeshBasicMaterial({color: 0xf0f0f0})};
 
 ////////////////////////
 /* CREATE OBJECT3D(S) */
@@ -105,6 +117,8 @@ var middleRing = new THREE.Object3D();
 var innerRing = new THREE.Object3D();
 var mobius = new THREE.Mesh();
 var cylinder = new THREE.Mesh();
+var base = new THREE.Mesh();
+var ground = new THREE.Mesh();
 var parametricObjects = [];
 
 function createSkyDome() {
@@ -114,10 +128,11 @@ function createSkyDome() {
     const y = SKYDOME_POS.y;
     const z = SKYDOME_POS.z;
 
-    geometry = new THREE.SphereGeometry(150, 20, 1000);
+    geometry = new THREE.SphereGeometry(SKYDOME_RADIUS, 20, 100, 0, Math.PI);
     const texture = new THREE.TextureLoader().load('./js/image.png'); 
     const domeMaterial = new THREE.MeshBasicMaterial({ map: texture, side: THREE.BackSide });
     mesh = new THREE.Mesh(geometry, domeMaterial);
+    mesh.rotateX(-Math.PI/2);
     mesh.position.set(x, y, z); 
     scene.add(mesh);
 }
@@ -319,7 +334,7 @@ function createCilinder(obj, pos) {
     const y = pos.y;
     const z = pos.z;
 
-    geometry = new THREE.CylinderGeometry(CYLINDER_RADIUS, CYLINDER_RADIUS, CYLINDER_HEIGHT, CYLINDER_RADIAL);
+    geometry = new THREE.CylinderGeometry(CYLINDER_RADIUS, CYLINDER_RADIUS, CYLINDER_HEIGHT, 32);
     cylinder = new THREE.Mesh(geometry, materials['lambert']);
     cylinder.position.set(x, y, z);
 
@@ -363,7 +378,7 @@ async function createMobius(obj, pos) {
     geometry = new THREE.BufferGeometry();
     geometry.setAttribute( 'position', new THREE.BufferAttribute( vertices, 3 ) );
     geometry.computeVertexNormals();
-    mobius = new THREE.Mesh(geometry, materials['lambert']);
+    mobius = new THREE.Mesh(geometry, mobius_materials['lambert']);
     mobius.rotateX(Math.PI/2);        
     mobius.position.set(x, y, z);
 
@@ -375,6 +390,36 @@ async function createMobius(obj, pos) {
 
     obj.add(mobius);
 
+}
+
+function createBase(obj, pos) {
+    'use strict'
+
+    const x = pos.x;
+    const y = pos.y;
+    const z = pos.z;
+
+    geometry = new THREE.CylinderGeometry(BASE_RADIUS, BASE_RADIUS, BASE_HEIGHT, 32);
+    base = new THREE.Mesh(geometry, materials['lambert']);
+    base.position.set(x, y, z);
+
+    obj.add(base);
+}
+
+function createGround(pos) {
+    'use strict'
+
+    const x = pos.x;
+    const y = pos.y;
+    const z = pos.z;
+
+    geometry = new THREE.CylinderGeometry(SKYDOME_RADIUS, SKYDOME_RADIUS, 0.1, 32);
+    const texture = new THREE.TextureLoader().load('./js/image.png'); 
+    const groundMaterial = new THREE.MeshBasicMaterial({ map: texture, side: THREE.BackSide });
+    ground = new THREE.Mesh(geometry, groundMaterial);
+    ground.position.set(x, y, z);
+
+    scene.add(ground);
 }
 
 function createCarousel(pos) {
@@ -389,7 +434,9 @@ function createCarousel(pos) {
     createInnerRing(carousel, INNER_RING_POS);
     createCilinder(carousel, CYLINDER_POS);
     createMobius(carousel, MOBIUS_POS);
+    createBase(carousel, BASE_POS);
     createSkyDome();
+    createGround(GROUND_POS);
 
     scene.add(carousel);
 
@@ -514,9 +561,11 @@ function createCamera(){
     'use strict';
 
     camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.set(50, 50, 50);
     camera.lookAt(scene.position);
+    camera.position.set(50, 50, 50);
 
+    stereoCamera = new THREE.StereoCamera();
+    stereoCamera.update(camera);
 }
 
 /////////////////////
@@ -541,7 +590,7 @@ function createLights(){
 function changeMaterial(material) {
     if(material != 'basic') curMaterial = material;
 
-    mobius.material = materials[material];
+    mobius.material = mobius_materials[material];
 
     for(let i = 0; i < outerRing.children.length; i++) {
         outerRing.children[i].material = outer_materials[material];
@@ -556,6 +605,8 @@ function changeMaterial(material) {
     }
 
     cylinder.material = materials[material];
+
+    base.material = materials[material];
 }
 
 function update(delta){
@@ -627,7 +678,6 @@ function update(delta){
 function render() {
     'use strict';
     renderer.render(scene, camera);
-
 }
 
 ////////////////////////////////
@@ -642,6 +692,9 @@ function init() {
     
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
+
+    document.body.appendChild( VRButton.createButton(renderer));
+    renderer.xr.enabled = true;
     
     createScene();
     createLights();
@@ -668,7 +721,7 @@ function animate() {
     
     render();
 
-    requestAnimationFrame(animate);
+    renderer.setAnimationLoop(animate);
 }
 
 ////////////////////////////
