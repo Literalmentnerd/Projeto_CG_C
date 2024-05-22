@@ -589,9 +589,9 @@ function update(delta){
     
     if(toon) changeMaterial('toon');
 
-    if(basic) changeMaterial('basic');
+    if(normal) changeMaterial('normal');
 
-    if(normal || curMaterial == 'normal') changeMaterial('normal');
+    if(basic) changeMaterial('basic');
 
     if(restoreMapping) {
         changeMaterial(curMaterial);
@@ -730,7 +730,7 @@ function onKeyDown(e) {
             normal = true;
             break;
         case 84: //t
-            basic = !basic && curMaterial != 'normal';
+            basic = !basic;
             if(!basic) restoreMapping = true;
             break;
     }
