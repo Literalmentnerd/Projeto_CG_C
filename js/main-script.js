@@ -45,7 +45,7 @@ const SKYDOME_RADIUS = 250;
 /* GLOBAL VARIABLES */
 //////////////////////
 
-var geometry, renderer, scene, mesh, camera, stereoCamera;
+var geometry, renderer, scene, mesh, camera;
 
 var inner_cur = 0;
 var inner_move = false;
@@ -70,8 +70,6 @@ var normal = false;
 
 var basic = false;
 var restoreMapping = false;
-
-var orbit; //! REMOVER NA ENTREGA
 
 var parametricScale = 1;
 
@@ -187,12 +185,13 @@ function createParametricShapes(obj, angle, radius, ring_materials) {
     }
     mesh = new THREE.Mesh(geometry, ring_materials['lambert']);
 
-    spotlight = new THREE.SpotLight('white', 250, 30, Math.PI, 0.5, 2);
+    spotlight = new THREE.SpotLight('white', 500, 20, Math.PI/4, 0.5, 2);
     spotlight.position.set(x, y-4.75, z);
     obj.add(spotlight);
     spotlights.push(spotlight);
 
     mesh.position.set(x, y, z);
+    spotlight.lookAt(mesh.position);
     spotlight.target = mesh;
     mesh.rotateY(Math.PI*2*Math.random());
 
@@ -556,11 +555,9 @@ function createCamera(){
     'use strict';
 
     camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.set(0, 50, 0);
     camera.lookAt(scene.position);
-    camera.position.set(50, 50, 50);
 
-    stereoCamera = new THREE.StereoCamera();
-    stereoCamera.update(camera);
 }
 
 /////////////////////
@@ -697,15 +694,16 @@ function init() {
     
     createScene();
     createLights();
+    scene.position.set(0, 0, -70);
     createCamera();
+
     
     render();
     
     window.addEventListener("keydown", onKeyDown);
     window.addEventListener("keyup", onKeyUp);
     window.addEventListener("resize", onResize);
-    
-    orbit = new OrbitControls(camera, renderer.domElement); //! REMOVER NA ENTREGA  
+
 }
 
 /////////////////////
@@ -713,8 +711,6 @@ function init() {
 /////////////////////
 function animate() {
     'use strict';
-
-    orbit.update(); //! REMOVER NA ENTREGA
     
     update(clock.getDelta());
     
