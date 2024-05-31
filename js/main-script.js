@@ -77,43 +77,6 @@ var parametricScale = 1;
 
 var clock = new THREE.Clock();
 
-let outer_materials = { lambert: new THREE.MeshLambertMaterial({color: 0xdb5856, side: THREE.DoubleSide}),
-                        phong: new THREE.MeshPhongMaterial({color: 0xdb5856, side: THREE.DoubleSide}),
-                        toon: new THREE.MeshToonMaterial({color: 0xdb5856, side: THREE.DoubleSide}),
-                        normal: new THREE.MeshNormalMaterial({side: THREE.DoubleSide}), 
-                        basic: new THREE.MeshBasicMaterial({color: 0xdb5856, side: THREE.DoubleSide})};
-
-let middle_materials = {    lambert: new THREE.MeshLambertMaterial({color: 0x4287f5, side: THREE.DoubleSide}),
-                            phong: new THREE.MeshPhongMaterial({color: 0x4287f5, side: THREE.DoubleSide}),
-                            toon: new THREE.MeshToonMaterial({color: 0x4287f5, side: THREE.DoubleSide}),
-                            normal: new THREE.MeshNormalMaterial({side: THREE.DoubleSide}),
-                            basic: new THREE.MeshBasicMaterial({color: 0x4287f5, side: THREE.DoubleSide})};
-                    
-let inner_materials = { lambert: new THREE.MeshLambertMaterial({color: 0x42f56f, side: THREE.DoubleSide}),
-                        phong: new THREE.MeshPhongMaterial({color: 0x42f56f, side: THREE.DoubleSide}),
-                        toon: new THREE.MeshToonMaterial({color: 0x42f56f, side: THREE.DoubleSide}),
-                        normal: new THREE.MeshNormalMaterial({side: THREE.DoubleSide}),
-                        basic: new THREE.MeshBasicMaterial({color: 0x42f56f, side: THREE.DoubleSide})};
-
-let mobius_materials = {lambert: new THREE.MeshLambertMaterial({color: 0xf0f0f0, side: THREE.DoubleSide}),
-                        phong: new THREE.MeshPhongMaterial({color: 0xf0f0f0, side: THREE.DoubleSide}),
-                        toon: new THREE.MeshToonMaterial({color: 0xf0f0f0, side: THREE.DoubleSide}),
-                        normal: new THREE.MeshNormalMaterial({side: THREE.DoubleSide}),
-                        basic: new THREE.MeshBasicMaterial({color: 0xf0f0f0, side: THREE.DoubleSide})};
-
-const texture = new THREE.TextureLoader().load('./js/image.png');
-let skydome_materials = {   lambert: new THREE.MeshLambertMaterial({color: 0xf0f0f0, map: texture, side: THREE.BackSide}),
-                            phong: new THREE.MeshPhongMaterial({color: 0xf0f0f0, map: texture, side: THREE.BackSide}),
-                            toon: new THREE.MeshToonMaterial({color: 0xf0f0f0, map: texture, side: THREE.BackSide}),
-                            normal: new THREE.MeshNormalMaterial({map: texture, side: THREE.BackSide}),
-                            basic: new THREE.MeshBasicMaterial({color: 0xf0f0f0, map: texture, side: THREE.BackSide})}
-
-let materials = {   lambert: new THREE.MeshLambertMaterial({color: 0xf0f0f0}),
-                    phong: new THREE.MeshPhongMaterial({color: 0xf0f0f0}),
-                    toon: new THREE.MeshToonMaterial({color: 0xf0f0f0}),
-                    normal: new THREE.MeshNormalMaterial(),
-                    basic: new THREE.MeshBasicMaterial({color: 0xf0f0f0})};
-
 ////////////////////////
 /* CREATE OBJECT3D(S) */
 ////////////////////////
@@ -129,6 +92,16 @@ var base = new THREE.Mesh();
 var ground = new THREE.Mesh();
 var parametricObjects = [];
 
+let materials_List = [];
+
+function createMaterial(colorChosen, sideChosen) {
+    return  {lambert: new THREE.MeshLambertMaterial({color: colorChosen, side: sideChosen}),
+            phong: new THREE.MeshPhongMaterial({color: colorChosen, side: sideChosen}),
+            toon: new THREE.MeshToonMaterial({color: colorChosen, side: sideChosen}),
+            normal: new THREE.MeshNormalMaterial({side: sideChosen}),
+            basic: new THREE.MeshBasicMaterial({color: colorChosen, side: sideChosen})};
+}
+
 function createSkyDome() {
     'use strict'
 
@@ -136,21 +109,32 @@ function createSkyDome() {
     const y = SKYDOME_POS.y;
     const z = SKYDOME_POS.z;
 
+    const texture = new THREE.TextureLoader().load('./js/image.png');
+    let skydome_materials = {   lambert: new THREE.MeshLambertMaterial({color: 0xf0f0f0, map: texture, side: THREE.BackSide}),
+                                phong: new THREE.MeshPhongMaterial({color: 0xf0f0f0, map: texture, side: THREE.BackSide}),
+                                toon: new THREE.MeshToonMaterial({color: 0xf0f0f0, map: texture, side: THREE.BackSide}),
+                                normal: new THREE.MeshNormalMaterial({map: texture, side: THREE.BackSide}),
+                                basic: new THREE.MeshBasicMaterial({color: 0xf0f0f0, map: texture, side: THREE.BackSide})}
+
     geometry = new THREE.SphereGeometry(SKYDOME_RADIUS, 20, 100, 0, Math.PI); 
     skydome = new THREE.Mesh(geometry, skydome_materials['lambert']);
     skydome.rotateX(-Math.PI/2);
     skydome.position.set(x, y, z); 
 
+    materials_List.push([skydome, skydome_materials]);
+
     geometry = new THREE.CylinderGeometry(SKYDOME_RADIUS, SKYDOME_RADIUS, 0.1, 32);
     ground = new THREE.Mesh(geometry, skydome_materials['lambert']);
     ground.position.set(x, y, z);
+
+    materials_List.push([ground, skydome_materials]);
 
     scene.add(ground);
     scene.add(skydome);
 }
 
 var parametricCounter = 0;
-function createParametricShapes(obj, angle, radius, ring_materials) {
+function createParametricShapes(obj, angle, radius) {
     'use strict'
 
     const x = radius * Math.cos(angle);
@@ -185,7 +169,10 @@ function createParametricShapes(obj, angle, radius, ring_materials) {
             geometry = new ParametricGeometry(kleinBottle, 32, 32);
             break;
     }
-    mesh = new THREE.Mesh(geometry, ring_materials['lambert']);
+     
+    let newMaterial = createMaterial(Math.floor(Math.random()*Math.pow(2,24)), THREE.DoubleSide);
+    mesh = new THREE.Mesh(geometry, newMaterial['lambert']);
+    materials_List.push([mesh, newMaterial]);
 
     spotlight = new THREE.SpotLight('white', 500, 20, Math.PI/4, 0.5, 2);
     spotlight.position.set(x, y-4.75, z);
@@ -209,12 +196,15 @@ function createOuterRing(obj, pos) {
     const y = pos.y;
     const z = pos.z;
 
+    let outer_materials = createMaterial(0xdb5856, THREE.DoubleSide);
+
     //Top side
     geometry = new THREE.RingGeometry(OUTER_RING_INRADIUS, OUTER_RING_OUTRADIUS);
     mesh = new THREE.Mesh(geometry, outer_materials['lambert']);
     mesh.rotateX(Math.PI/2);
     mesh.position.set(x, y+5, z);
     outerRing.add(mesh);
+    materials_List.push([mesh, outer_materials]);
 
     //Bottom side
     geometry = new THREE.RingGeometry(OUTER_RING_OUTRADIUS, OUTER_RING_INRADIUS);
@@ -222,6 +212,7 @@ function createOuterRing(obj, pos) {
     mesh.rotateX(Math.PI/2);
     mesh.position.set(x, y-5, z);
     outerRing.add(mesh);
+    materials_List.push([mesh, outer_materials]);
 
     const path = new THREE.LineCurve3(new THREE.Vector3(0,0,5), new THREE.Vector3(0,0,-5));
 
@@ -231,6 +222,7 @@ function createOuterRing(obj, pos) {
     mesh.rotateX(Math.PI/2);
     mesh.position.set(x, y, z);
     outerRing.add(mesh);
+    materials_List.push([mesh, outer_materials]);
 
     //Inner side
     geometry = new THREE.TubeGeometry(path, 64, OUTER_RING_INRADIUS, 32);
@@ -238,6 +230,8 @@ function createOuterRing(obj, pos) {
     mesh.rotateX(Math.PI/2);
     mesh.position.set(x, y, z);
     outerRing.add(mesh);
+    materials_List.push([mesh, outer_materials]);
+
 
     //Parametric shapes
     parametricScale = 1;
@@ -255,12 +249,15 @@ function createMiddleRing(obj, pos) {
     const y = pos.y;
     const z = pos.z;
 
+    let middle_materials = createMaterial(0x4287f5, THREE.DoubleSide);
+
     //Top side
     geometry = new THREE.RingGeometry(MIDDLE_RING_INRADIUS, MIDDLE_RING_OUTRADIUS);
     mesh = new THREE.Mesh(geometry, middle_materials['lambert']);
     mesh.rotateX(Math.PI/2);
     mesh.position.set(x, y+5, z);
     middleRing.add(mesh);
+    materials_List.push([mesh, middle_materials]);
 
     //Bottom side
     geometry = new THREE.RingGeometry(MIDDLE_RING_OUTRADIUS, MIDDLE_RING_INRADIUS);
@@ -268,6 +265,7 @@ function createMiddleRing(obj, pos) {
     mesh.rotateX(Math.PI/2);
     mesh.position.set(x, y-5, z);
     middleRing.add(mesh);
+    materials_List.push([mesh, middle_materials]);
 
     const path = new THREE.LineCurve3(new THREE.Vector3(0,0,5), new THREE.Vector3(0,0,-5));
 
@@ -277,6 +275,7 @@ function createMiddleRing(obj, pos) {
     mesh.rotateX(Math.PI/2);
     mesh.position.set(x, y, z);
     middleRing.add(mesh);
+    materials_List.push([mesh, middle_materials]);
 
     //Inner side
     geometry = new THREE.TubeGeometry(path, 64, MIDDLE_RING_INRADIUS, 32);
@@ -284,6 +283,7 @@ function createMiddleRing(obj, pos) {
     mesh.rotateX(Math.PI/2);
     mesh.position.set(x, y, z);
     middleRing.add(mesh);
+    materials_List.push([mesh, middle_materials]);
 
     //Parametric shapes
     parametricScale = 0.75;
@@ -301,12 +301,15 @@ function createInnerRing(obj, pos) {
     const y = pos.y;
     const z = pos.z;
 
+    let inner_materials = createMaterial(0x42f56f, THREE.DoubleSide);
+
     //Top side
     geometry = new THREE.RingGeometry(INNER_RING_INRADIUS, INNER_RING_OUTRADIUS);
     mesh = new THREE.Mesh(geometry, inner_materials['lambert']);
     mesh.rotateX(Math.PI/2);
     mesh.position.set(x, y+5, z);
     innerRing.add(mesh);
+    materials_List.push([mesh, inner_materials]);
 
     //Bottom side
     geometry = new THREE.RingGeometry(INNER_RING_OUTRADIUS, INNER_RING_INRADIUS);
@@ -314,6 +317,7 @@ function createInnerRing(obj, pos) {
     mesh.rotateX(Math.PI/2);
     mesh.position.set(x, y-5, z);
     innerRing.add(mesh);
+    materials_List.push([mesh, inner_materials]);
 
     const path = new THREE.LineCurve3(new THREE.Vector3(0,0,5), new THREE.Vector3(0,0,-5));
 
@@ -323,6 +327,7 @@ function createInnerRing(obj, pos) {
     mesh.rotateX(Math.PI/2);
     mesh.position.set(x, y, z);
     innerRing.add(mesh);
+    materials_List.push([mesh, inner_materials]);
 
     //Inner side
     geometry = new THREE.TubeGeometry(path, 64, INNER_RING_INRADIUS, 32);
@@ -330,6 +335,7 @@ function createInnerRing(obj, pos) {
     mesh.rotateX(Math.PI/2);
     mesh.position.set(x, y, z);
     innerRing.add(mesh);
+    materials_List.push([mesh, inner_materials]);
 
     //Parametric shapes
     parametricScale = 0.5;
@@ -347,9 +353,13 @@ function createCilinder(obj, pos) {
     const y = pos.y;
     const z = pos.z;
 
+    let materials = createMaterial(0xf0f0f0, THREE.FrontSide);
+
     geometry = new THREE.CylinderGeometry(CYLINDER_RADIUS, CYLINDER_RADIUS, CYLINDER_HEIGHT, 32);
     cylinder = new THREE.Mesh(geometry, materials['lambert']);
     cylinder.position.set(x, y, z);
+
+    materials_List.push([cylinder, materials]);
 
     obj.add(cylinder);
 
@@ -376,12 +386,16 @@ function createMobius(obj, pos) {
     const y = pos.y;
     const z = pos.z;
 
+    let mobius_materials = createMaterial(0xf0f0f0, THREE.DoubleSide);
+
     geometry = new THREE.BufferGeometry();
     geometry.setAttribute( 'position', new THREE.BufferAttribute( vertices, 3 ) );
     geometry.computeVertexNormals();
     mobius = new THREE.Mesh(geometry, mobius_materials['lambert']);
     mobius.rotateX(Math.PI/2);        
     mobius.position.set(x, y, z);
+
+    materials_List.push([mobius, mobius_materials]);
 
     // Create point lights
     for(let i = 0; i < 2 * Math.PI; i += Math.PI/4) {
@@ -400,9 +414,13 @@ function createBase(obj, pos) {
     const y = pos.y;
     const z = pos.z;
 
+    let materials = createMaterial(0xf0f0f0, THREE.FrontSide);
+
     geometry = new THREE.CylinderGeometry(BASE_RADIUS, BASE_RADIUS, BASE_HEIGHT, 32);
     base = new THREE.Mesh(geometry, materials['lambert']);
     base.position.set(x, y, z);
+
+    materials_List.push([base, materials]);
 
     obj.add(base);
 }
@@ -572,27 +590,9 @@ function createLights(){
 function changeMaterial(material) {
     if(material != 'basic') curMaterial = material;
 
-    mobius.material = mobius_materials[material];
-
-    for(let i = 0; i < outerRing.children.length; i++) {
-        outerRing.children[i].material = outer_materials[material];
+    for(let i = 0; i < materials_List.length; i++){
+        materials_List[i][0].material = materials_List[i][1][material];
     }
-
-    for(let i = 0; i < middleRing.children.length; i++) {
-        middleRing.children[i].material = middle_materials[material];
-    }
-
-    for(let i = 0; i < innerRing.children.length; i++) {
-        innerRing.children[i].material = inner_materials[material];
-    }
-
-    cylinder.material = materials[material];
-
-    base.material = materials[material];
-
-    skydome.material = skydome_materials[material];
-
-    ground.material = skydome_materials[material];
 }
 
 function update(delta){
@@ -686,9 +686,6 @@ function init() {
     createLights();
     scene.position.set(0, 0, -70);
     createCamera();
-
-    
-    render();
     
     window.addEventListener("keydown", onKeyDown);
     window.addEventListener("keyup", onKeyUp);
@@ -703,10 +700,6 @@ function animate() {
     'use strict';
     
     update(clock.getDelta());
-    
-    render();
-
-    renderer.setAnimationLoop(animate);
 }
 
 ////////////////////////////
@@ -805,4 +798,4 @@ function onKeyUp(e){
 }
 
 init();
-animate();
+renderer.setAnimationLoop(animate);
